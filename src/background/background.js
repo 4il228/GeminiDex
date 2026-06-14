@@ -1,6 +1,7 @@
 // Background Service Worker — обработка сообщений, запросы к бэкенду
 
 const BACKEND_URL = 'http://localhost:3000';
+let activeAbort = null;
 
 // Декодирование JWT (без верификации)
 function decodeJWT(token) {
@@ -66,6 +67,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    case 'STOP_STREAM': {
+      if (activeAbort) {
+        activeAbort.abort();
+        activeAbort = null;
+      }
+      sendResponse({ success: true });
+      return false;
+    }
+
     case 'SEND_PROMPT': {
       chrome.storage.local.get(['authToken'], async (result) => {
         if (!result.authToken) {
@@ -77,6 +87,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         try {
+          const controller = new AbortController();
+          activeAbort = controller;
+
           const response = await fetch(`${BACKEND_URL}/api/v1/chat`, {
             method: 'POST',
             headers: {
@@ -87,7 +100,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               message: payload.message,
               context: payload.context,
               model: payload.model
-            })
+            }),
+            signal: controller.signal
           });
 
           if (!response.ok) {
@@ -143,6 +157,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
           chrome.tabs.sendMessage(sender.tab.id, { type: 'STREAM_END' });
         } catch (error) {
+          activeAbort = null;
+          if (error.name === 'AbortError') {
+            chrome.tabs.sendMessage(sender.tab.id, { type: 'STREAM_END' });
+            return;
+          }
           chrome.tabs.sendMessage(sender.tab.id, {
             type: 'STREAM_ERROR',
             payload: { error: error.message || 'Network error' }

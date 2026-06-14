@@ -266,6 +266,20 @@
     .send-btn:active { transform: scale(0.95); }
     .send-btn:disabled { background: #3c3f41; color: #80868b; cursor: not-allowed; transform: none; }
     .send-btn svg { width: 18px; height: 18px; fill: currentColor; }
+    .stop-btn {
+      width: 36px; height: 36px; border-radius: 50%; background: #ea4335;
+      color: #fff; border: none; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 0.2s, transform 0.15s;
+      animation: stopPulse 1.5s ease-in-out infinite;
+    }
+    .stop-btn:hover { background: #c5221f; transform: scale(1.05); }
+    .stop-btn:active { transform: scale(0.95); }
+    .stop-btn svg { width: 16px; height: 16px; fill: currentColor; }
+    @keyframes stopPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(234, 67, 53, 0); }
+    }
 
     /* Analyze checkbox */
     .analyze-bar {
@@ -401,6 +415,9 @@
           <button class="send-btn" id="send-btn">
             <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
+          <button class="stop-btn" id="stop-btn" style="display:none">
+            <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -460,6 +477,7 @@
     var emptyState = doc.getElementById('empty-state');
     var userInput = doc.getElementById('user-input');
     var sendBtn = doc.getElementById('send-btn');
+    var stopBtn = doc.getElementById('stop-btn');
     var headerIcon = doc.querySelector('.header-icon');
 
     var isStreaming = false;
@@ -552,7 +570,8 @@
 
     function setLoading(on) {
       isStreaming = on;
-      sendBtn.disabled = on;
+      sendBtn.style.display = on ? 'none' : 'flex';
+      stopBtn.style.display = on ? 'flex' : 'none';
       userInput.disabled = on;
       if (headerIcon) {
         if (on) { headerIcon.classList.add('thinking'); }
@@ -677,6 +696,13 @@
     }
 
     sendBtn.addEventListener('click', send);
+    stopBtn.addEventListener('click', function () {
+      root.dispatchEvent(new CustomEvent('gemini-agent-send', {
+        detail: { type: 'STOP_STREAM' }
+      }));
+      endStream();
+      setLoading(false);
+    });
     userInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     });
