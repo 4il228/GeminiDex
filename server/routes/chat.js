@@ -6,8 +6,8 @@ const router = express.Router();
 
 const TIER_MODELS = {
   free:  { models: ['gemini-2.5-flash'], maxTokens: 4000,  contextLimit: '4k' },
-  pro:   { models: ['gemini-2.5-flash', 'gemini-1.5-pro'], maxTokens: 32000, contextLimit: '32k' },
-  ultra: { models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-2.5-pro'], maxTokens: 100000, contextLimit: '100k+' }
+  pro:   { models: ['gemini-2.5-flash', 'gemini-2.5-pro'], maxTokens: 32000, contextLimit: '32k' },
+  ultra: { models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'], maxTokens: 100000, contextLimit: '100k+' }
 };
 
 router.post('/chat', authMiddleware, async (req, res) => {

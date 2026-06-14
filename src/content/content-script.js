@@ -562,8 +562,8 @@
 
     var TIER_MODELS = {
       free:  [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }],
-      pro:   [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Smart' }],
-      ultra: [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Smart' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Flagship' }]
+      pro:   [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Smart' }],
+      ultra: [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Smart' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Legacy' }]
     };
 
     function buildModelDropdown(tier) {
