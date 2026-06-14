@@ -253,6 +253,18 @@
       color: #8ab4f8; text-decoration: none;
     }
     .msg.bot a:hover { text-decoration: underline; }
+    .msg.bot .math-block {
+      display: block; text-align: center; padding: 12px 16px; margin: 10px 0;
+      background: rgba(138, 180, 248, 0.06); border: 1px solid rgba(138, 180, 248, 0.15);
+      border-radius: 8px; font-family: 'JetBrains Mono', 'Fira Code', 'Cambria Math', monospace;
+      font-size: 13px; color: #c4c7cc; overflow-x: auto; white-space: nowrap;
+    }
+    .msg.bot .math-inline {
+      padding: 1px 5px; border-radius: 4px;
+      background: rgba(138, 180, 248, 0.08);
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cambria Math', monospace;
+      font-size: 13px; color: #c4c7cc;
+    }
 
     /* Error */
     .error {
@@ -511,6 +523,18 @@
     var selectedModel = null;
 
     function renderMarkdown(text) {
+      var mathBlocks = [];
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, function (_, m) {
+        var idx = mathBlocks.length;
+        mathBlocks.push('<div class="math-block">$$' + m.trim() + '$$</div>');
+        return '\x00MATH' + idx + '\x00';
+      });
+      text = text.replace(/\$([^\$\n]+?)\$/g, function (_, m) {
+        var idx = mathBlocks.length;
+        mathBlocks.push('<span class="math-inline">$' + m.trim() + '$</span>');
+        return '\x00MATH' + idx + '\x00';
+      });
+
       var h = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
       h = h.replace(/```(\w*)\n([\s\S]*?)```/g, function (_, lang, code) {
@@ -552,8 +576,11 @@
       h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
       h = h.replace(/\n/g, '<br>');
-      h = h.replace(/<br><(h[1-6]|ul|ol|blockquote|pre|hr)/g, '<$1');
-      h = h.replace(/<\/(h[1-6]|ul|ol|blockquote|pre)><br>/g, '</$1>');
+      h = h.replace(/<br><(h[1-6]|ul|ol|blockquote|pre|hr|div)/g, '<$1');
+      h = h.replace(/<\/(h[1-6]|ul|ol|blockquote|pre|div)><br>/g, '</$1>');
+
+      h = h.replace(/\x00MATH(\d+)\x00/g, function (_, i) { return mathBlocks[parseInt(i)]; });
+
       return h;
     }
 
