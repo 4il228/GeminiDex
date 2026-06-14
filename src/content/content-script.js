@@ -10,6 +10,17 @@
 
   var CONTEXT_LIMITS = { free: 4000, pro: 15000, ultra: 50000 };
 
+  function isVisible(el) {
+    var r = el.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    return r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw;
+  }
+
+  function getVisible(selector) {
+    return Array.prototype.filter.call(document.querySelectorAll(selector), isVisible);
+  }
+
   function getPageContext(tier) {
     var limit = CONTEXT_LIMITS[tier] || CONTEXT_LIMITS.free;
     var parts = [];
@@ -26,7 +37,7 @@
     var sel = window.getSelection().toString().trim();
     if (sel) parts.push('[Selected text]\n' + sel);
 
-    var headings = document.querySelectorAll('h1, h2, h3');
+    var headings = getVisible('h1, h2, h3');
     var headingTexts = [];
     headings.forEach(function (h) {
       var t = h.innerText.trim();
@@ -37,7 +48,10 @@
     var article = document.querySelector('article, main, [role="main"]');
     var contentEl = article || document.body;
 
-    var paragraphs = contentEl.querySelectorAll('p, li, td, th, blockquote, pre, div.task, div.problem, span.question');
+    var paragraphs = Array.prototype.filter.call(
+      contentEl.querySelectorAll('p, li, td, th, blockquote, pre, div.task, div.problem, span.question'),
+      isVisible
+    );
     var textParts = [];
     paragraphs.forEach(function (el) {
       var t = el.innerText.trim();
@@ -46,7 +60,7 @@
     if (textParts.length) parts.push('[Content]\n' + textParts.join('\n'));
 
     if (tier === 'pro' || tier === 'ultra') {
-      var codeBlocks = document.querySelectorAll('code, pre, .code, .code-block');
+      var codeBlocks = getVisible('code, pre, .code, .code-block');
       var codeTexts = [];
       codeBlocks.forEach(function (el) {
         var t = el.innerText.trim();
@@ -56,7 +70,7 @@
     }
 
     if (tier === 'ultra') {
-      var links = document.querySelectorAll('a[href]');
+      var links = getVisible('a[href]');
       var linkTexts = [];
       links.forEach(function (el) {
         var t = el.innerText.trim();
@@ -66,7 +80,7 @@
       if (linkTexts.length > 50) linkTexts = linkTexts.slice(0, 50);
       if (linkTexts.length) parts.push('[Links]\n' + linkTexts.join('\n'));
 
-      var imgs = document.querySelectorAll('img[alt]');
+      var imgs = getVisible('img[alt]');
       var imgTexts = [];
       imgs.forEach(function (img) {
         if (img.alt.trim()) imgTexts.push(img.alt.trim());
@@ -700,6 +714,7 @@
       root.dispatchEvent(new CustomEvent('gemini-agent-send', {
         detail: { type: 'STOP_STREAM' }
       }));
+      removePhase();
       endStream();
       setLoading(false);
     });
