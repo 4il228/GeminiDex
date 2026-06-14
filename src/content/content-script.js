@@ -561,9 +561,9 @@
     }
 
     var TIER_MODELS = {
-      free:  [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }],
-      pro:   [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Smart' }],
-      ultra: [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Smart' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Legacy' }]
+      free:  [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }],
+      pro:   [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }],
+      ultra: [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Legacy' }]
     };
 
     function buildModelDropdown(tier) {
@@ -603,9 +603,9 @@
     }
 
     var TIER_LABELS = {
-      free:  { max: '4k chars', scope: 'full page' },
-      pro:   { max: '15k chars', scope: 'full page + code' },
-      ultra: { max: '50k chars', scope: 'full page + links' }
+      free:  { max: '1M tokens', scope: 'full page' },
+      pro:   { max: '1M tokens', scope: 'full page + code' },
+      ultra: { max: '1M+ tokens', scope: 'full page + links' }
     };
 
     function setTierUI(tier) {

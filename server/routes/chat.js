@@ -5,9 +5,9 @@ import authMiddleware from '../middleware/auth.js';
 const router = express.Router();
 
 const TIER_MODELS = {
-  free:  { models: ['gemini-2.5-flash'], maxTokens: 4000,  contextLimit: '4k' },
-  pro:   { models: ['gemini-2.5-flash', 'gemini-2.5-pro'], maxTokens: 32000, contextLimit: '32k' },
-  ultra: { models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'], maxTokens: 100000, contextLimit: '100k+' }
+  free:  { models: ['gemini-3.5-flash'], maxTokens: 65000, contextLimit: '1M' },
+  pro:   { models: ['gemini-3.5-flash', 'gemini-2.5-pro'], maxTokens: 65000, contextLimit: '1M' },
+  ultra: { models: ['gemini-3.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'], maxTokens: 100000, contextLimit: '1M+' }
 };
 
 router.post('/chat', authMiddleware, async (req, res) => {
