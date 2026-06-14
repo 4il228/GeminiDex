@@ -10,17 +10,6 @@
 
   var CONTEXT_LIMITS = { free: 4000, pro: 15000, ultra: 50000 };
 
-  function isVisible(el) {
-    var r = el.getBoundingClientRect();
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    var vw = window.innerWidth || document.documentElement.clientWidth;
-    return r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw;
-  }
-
-  function getVisible(selector) {
-    return Array.prototype.filter.call(document.querySelectorAll(selector), isVisible);
-  }
-
   function getPageContext(tier) {
     var limit = CONTEXT_LIMITS[tier] || CONTEXT_LIMITS.free;
     var parts = [];
@@ -37,7 +26,7 @@
     var sel = window.getSelection().toString().trim();
     if (sel) parts.push('[Selected text]\n' + sel);
 
-    var headings = getVisible('h1, h2, h3');
+    var headings = document.querySelectorAll('h1, h2, h3');
     var headingTexts = [];
     headings.forEach(function (h) {
       var t = h.innerText.trim();
@@ -48,10 +37,7 @@
     var article = document.querySelector('article, main, [role="main"]');
     var contentEl = article || document.body;
 
-    var paragraphs = Array.prototype.filter.call(
-      contentEl.querySelectorAll('p, li, td, th, blockquote, pre, div.task, div.problem, span.question'),
-      isVisible
-    );
+    var paragraphs = contentEl.querySelectorAll('p, li, td, th, blockquote, pre, div.task, div.problem, span.question');
     var textParts = [];
     paragraphs.forEach(function (el) {
       var t = el.innerText.trim();
@@ -60,7 +46,7 @@
     if (textParts.length) parts.push('[Content]\n' + textParts.join('\n'));
 
     if (tier === 'pro' || tier === 'ultra') {
-      var codeBlocks = getVisible('code, pre, .code, .code-block');
+      var codeBlocks = document.querySelectorAll('code, pre, .code, .code-block');
       var codeTexts = [];
       codeBlocks.forEach(function (el) {
         var t = el.innerText.trim();
@@ -70,7 +56,7 @@
     }
 
     if (tier === 'ultra') {
-      var links = getVisible('a[href]');
+      var links = document.querySelectorAll('a[href]');
       var linkTexts = [];
       links.forEach(function (el) {
         var t = el.innerText.trim();
@@ -80,7 +66,7 @@
       if (linkTexts.length > 50) linkTexts = linkTexts.slice(0, 50);
       if (linkTexts.length) parts.push('[Links]\n' + linkTexts.join('\n'));
 
-      var imgs = getVisible('img[alt]');
+      var imgs = document.querySelectorAll('img[alt]');
       var imgTexts = [];
       imgs.forEach(function (img) {
         if (img.alt.trim()) imgTexts.push(img.alt.trim());
@@ -232,8 +218,12 @@
     }
     .msg.bot {
       align-self: flex-start; background: #282a2c; color: #e3e3e3;
-      border-bottom-left-radius: 6px;
+      border-bottom-left-radius: 6px; line-height: 1.7;
     }
+    .msg.bot h1 { font-size: 18px; font-weight: 700; color: #fff; margin: 12px 0 6px; }
+    .msg.bot h2 { font-size: 16px; font-weight: 600; color: #fff; margin: 10px 0 5px; }
+    .msg.bot h3 { font-size: 14px; font-weight: 600; color: #e8eaed; margin: 8px 0 4px; }
+    .msg.bot h4, .msg.bot h5, .msg.bot h6 { font-size: 13px; font-weight: 600; color: #c4c7cc; margin: 6px 0 3px; }
     .msg.bot code {
       background: #3c3f41; padding: 2px 6px; border-radius: 4px;
       font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; color: #8ab4f8;
@@ -241,10 +231,28 @@
     .msg.bot pre {
       background: #1a1b1c; color: #e3e3e3; padding: 14px; border-radius: 8px;
       overflow-x: auto; margin: 10px 0; border: 1px solid #3c3f41;
+      position: relative;
     }
-    .msg.bot pre code { background: none; padding: 0; color: inherit; }
+    .msg.bot pre code { background: none; padding: 0; color: inherit; font-size: 12px; line-height: 1.5; }
+    .msg.bot pre code::before { content: attr(class); position: absolute; top: 6px; right: 10px; font-size: 10px; color: #5f6368; text-transform: uppercase; }
     .msg.bot strong { color: #e8eaed; font-weight: 600; }
-    .msg.bot em { color: #c4c7cc; }
+    .msg.bot em { color: #c4c7cc; font-style: italic; }
+    .msg.bot del { color: #80868b; text-decoration: line-through; }
+    .msg.bot ul, .msg.bot ol { padding-left: 20px; margin: 6px 0; }
+    .msg.bot li { margin: 3px 0; }
+    .msg.bot li::marker { color: #8ab4f8; }
+    .msg.bot blockquote {
+      border-left: 3px solid #8ab4f8; padding: 6px 12px; margin: 8px 0;
+      background: rgba(138, 180, 248, 0.06); border-radius: 0 6px 6px 0;
+      color: #c4c7cc;
+    }
+    .msg.bot hr {
+      border: none; border-top: 1px solid #3c3f41; margin: 10px 0;
+    }
+    .msg.bot a {
+      color: #8ab4f8; text-decoration: none;
+    }
+    .msg.bot a:hover { text-decoration: underline; }
 
     /* Error */
     .error {
@@ -504,13 +512,48 @@
 
     function renderMarkdown(text) {
       var h = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      h = h.replace(/```(\w*)\n([\s\S]*?)```/g, function (_, l, c) {
-        return '<pre><code>' + c.trim() + '</code></pre>';
+
+      h = h.replace(/```(\w*)\n([\s\S]*?)```/g, function (_, lang, code) {
+        var cls = lang ? ' class="lang-' + lang + '"' : '';
+        return '<pre><code' + cls + '>' + code.trimEnd() + '</code></pre>';
       });
-      h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+      h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+      h = h.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+      h = h.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+      h = h.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+      h = h.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+      h = h.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+      h = h.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+      h = h.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
+      h = h.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+      h = h.replace(/^\s*\d+\.\s+(.+)$/gm, '<oli>$1</oli>');
+      h = h.replace(/(<oli>.*<\/oli>\n?)+/g, function (m) {
+        return '<ol>' + m.replace(/<\/?oli>/g, function (t) {
+          return t === '<oli>' ? '<li>' : '</li>';
+        }) + '</ol>';
+      });
+
+      h = h.replace(/^&gt;\s+(.+)$/gm, '<blockquote>$1</blockquote>');
+      h = h.replace(/(<blockquote>.*<\/blockquote>\n?)+/g, function (m) {
+        return '<blockquote>' + m.replace(/<\/?blockquote>/g, '') + '</blockquote>';
+      });
+
+      h = h.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr>');
+
       h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      h = h.replace(/__([^_]+)__/g, '<strong>$1</strong>');
       h = h.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      h = h.replace(/_([^_]+)_/g, '<em>$1</em>');
+      h = h.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+      h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
       h = h.replace(/\n/g, '<br>');
+      h = h.replace(/<br><(h[1-6]|ul|ol|blockquote|pre|hr)/g, '<$1');
+      h = h.replace(/<\/(h[1-6]|ul|ol|blockquote|pre)><br>/g, '</$1>');
       return h;
     }
 
