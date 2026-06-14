@@ -1,27 +1,34 @@
-const express = require('express');
-const { GoogleGenAI } = require('@google/genai');
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import { GoogleGenAI } from '@google/genai';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
-const TIER_CONFIG = {
-  free:  { model: 'gemini-2.5-flash', maxTokens: 4000,  contextLimit: '4k' },
-  pro:   { model: 'gemini-1.5-pro',   maxTokens: 32000, contextLimit: '32k' },
-  ultra: { model: 'gemini-1.5-pro',   maxTokens: 100000, contextLimit: '100k+' }
+const TIER_MODELS = {
+  free:  { models: ['gemini-2.5-flash'], maxTokens: 4000,  contextLimit: '4k' },
+  pro:   { models: ['gemini-2.5-flash', 'gemini-1.5-pro'], maxTokens: 32000, contextLimit: '32k' },
+  ultra: { models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-2.5-pro'], maxTokens: 100000, contextLimit: '100k+' }
 };
 
 router.post('/chat', authMiddleware, async (req, res) => {
-  const { message, context } = req.body;
+  const { message, context, model } = req.body;
   const tier = req.user.tier;
-  const config = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  const tierConfig = TIER_MODELS[tier] || TIER_MODELS.free;
 
   if (!message) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
+  const selectedModel = (model && tierConfig.models.includes(model))
+    ? model
+    : tierConfig.models[0];
+
   let prompt = message;
   if (context) {
     prompt = `Контекст страницы:\n${context}\n\nВопрос пользователя: ${message}`;
+    console.log(`[chat] context: ${context.length} chars, model: ${selectedModel}, tier: ${tier}`);
+  } else {
+    console.log(`[chat] no context, model: ${selectedModel}, tier: ${tier}`);
   }
 
   const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -33,10 +40,10 @@ router.post('/chat', authMiddleware, async (req, res) => {
 
   try {
     const response = await genai.models.generateContentStream({
-      model: config.model,
+      model: selectedModel,
       contents: prompt,
       config: {
-        maxOutputTokens: config.maxTokens
+        maxOutputTokens: tierConfig.maxTokens
       }
     });
 
@@ -55,4 +62,4 @@ router.post('/chat', authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

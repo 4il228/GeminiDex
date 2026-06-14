@@ -1,7 +1,11 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const chatRoutes = require('./routes/chat');
+import 'dotenv/config';
+import { setupProxy } from './proxy.js';
+
+await setupProxy();
+
+import express from 'express';
+import cors from 'cors';
+import chatRoutes from './routes/chat.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,3 +23,5 @@ app.use('/api/v1', chatRoutes);
 app.listen(PORT, () => {
   console.log(`Gemini Agent proxy running on http://localhost:${PORT}`);
 });
+
+export default app;

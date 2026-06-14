@@ -3,6 +3,7 @@
   "name": "Gemini Agent",
   "version": "1.0.0",
   "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["http://localhost:3000/*"],
   "background": {
     "service_worker": "src/background/background.js"
   },
