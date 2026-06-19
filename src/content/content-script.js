@@ -664,9 +664,9 @@
     }
 
     var TIER_MODELS = {
-      free:  [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }],
-      pro:   [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }, { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }],
-      ultra: [{ id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }, { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Legacy' }]
+      free:  [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }],
+      pro:   [{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }, { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }],
+      ultra: [{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', tag: 'Pro' }, { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', tag: 'Latest' }, { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', tag: 'Fast' }, { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', tag: 'Legacy' }]
     };
 
     function buildModelDropdown(tier) {
@@ -722,7 +722,7 @@
         bar.className = 'analyze-bar';
         bar.innerHTML =
           '<label class="analyze-label">' +
-            '<input type="checkbox" id="analyze-cb" checked>' +
+            '<input type="checkbox" id="analyze-cb">' +
             '<span class="analyze-text">Analyze page</span>' +
           '</label>' +
           '<span class="analyze-info">' + info.scope + ' \u00B7 ' + info.max + '</span>';

@@ -113,7 +113,7 @@
         wrapper = document.createElement('div');
         wrapper.id = 'analyze-wrapper';
         wrapper.className = 'analyze-wrapper';
-        wrapper.innerHTML = '<label class="analyze-label"><input type="checkbox" id="analyze-checkbox" checked> Analyze page</label>';
+        wrapper.innerHTML = '<label class="analyze-label"><input type="checkbox" id="analyze-checkbox"> Analyze page</label>';
         chatWrapper.insertBefore(wrapper, chatWrapper.querySelector('.input-area'));
         analyzeCheckbox = shadow.getElementById('analyze-checkbox');
       }

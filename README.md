@@ -1,123 +1,186 @@
-# Gemini Agent — AI Assistant Browser Extension
+<div align="center">
 
-Расширение для Яндекс Браузера (Chrome), интегрирующее Google Gemini API прямо на любую веб-страницу.
+# Gemini Agent
 
-## Возможности
+**AI-powered browser extension** that brings Google Gemini directly into any web page.
 
-- **Sidebar-виджет** — AI-ассистент открывается справа на любой странице по нажатию `Alt+G`
-- **Анализ страницы** — автоматически извлекает заголовки, текст, ссылки и отправляет как контекст в промпт
-- **Стриминг ответов** — ответы генерируются в реальном времени с анимациями фаз (думаю → формирую → ответ)
-- **Переключение моделей** — выбор модели Gemini из доступных для вашего тарифного плана
-- **Тарифные планы** — Free / Pro / Ultra с разными лимитами контекста и моделями
-- **Команда `cls`** — очистка истории чата без отправки на сервер
-- **Прокси-автодетект** — автоматическое определение системного прокси Windows и локальных прокси (Hiddify, Happ)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](./LICENSE)
 
-## Архитектура
+</div>
+
+---
+
+A sidebar AI assistant for Chromium-based browsers (Yandex Browser, Chrome, Edge) that analyzes web pages, answers questions, and renders Markdown with math formulas -- all powered by Google Gemini API.
+
+## Features
+
+- **Sidebar Widget** -- AI assistant opens on any page via `Alt+G` hotkey
+- **Page Analysis** -- extracts headings, text, code blocks, links, and sends as context
+- **Real-time Streaming** -- responses stream in live with thinking animations
+- **Model Selector** -- choose between Gemini models based on your subscription tier
+- **Tiered Access** -- Free / Pro / Ultra plans with different context limits and models
+- **Markdown Rendering** -- full support for bold, code blocks, lists, blockquotes, math formulas
+- **Stop Button** -- cancel streaming mid-generation
+- **Clear Chat** -- type `cls` to clear history without server roundtrip
+- **Proxy Auto-detect** -- automatically finds Windows system proxy or local proxies (Hiddify, Happ)
+
+## Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  Content Script  │────▶│  Background SW   │────▶│  Proxy Server    │
-│  (iframe UI)     │     │  (fetch + SSE)   │     │  (Node.js/Exp)   │
-└─────────────────┘     └──────────────────┘     └────────┬─────────┘
-                                                          │
-                                                   ┌──────▼──────┐
-                                                   │  Gemini API  │
-                                                   └─────────────┘
+ User Page         Content Script       Background SW        Proxy Server         Gemini API
+ +---------+       +-------------+      +-------------+      +-------------+      +---------+
+ |  iframe  | <---> |   Bridge    | <---> |   Fetch +   | <---> |  Express +  | <---> |  REST   |
+ | (UI/UX)  |       | (CS <-> BG) |      |   SSE       |      |  JWT Auth   |      |  Stream |
+ +---------+       +-------------+      +-------------+      +-------------+      +---------+
 ```
 
-- **Content Script** — создаёт iframe с изолированным UI (Shadow DOM подход через iframe blob URL)
-- **Background Service Worker** — обрабатывает авторизацию, проксирует запросы к бэкенду, парсит SSE-стриминг
-- **Proxy Server** — Express.js сервер, валидирует тарифы, скрывает API-ключ, маршрутизирует запросы к Gemini
+| Layer | Technology | Responsibility |
+|-------|-----------|----------------|
+| **UI** | iframe (blob URL) | Isolated interface, markdown rendering, streaming display |
+| **Content Script** | Vanilla JS | Page context extraction, message bridge to background |
+| **Background SW** | Service Worker | Auth token storage, SSE parsing, abort controller |
+| **Proxy Server** | Node.js + Express | JWT validation, tier enforcement, Gemini API calls |
 
-## Быстрый старт
+## Quick Start
 
-### 1. Установка зависимостей
+### Prerequisites
+
+- Node.js 18+
+- A Google Gemini API key ([get one here](https://aistudio.google.com/apikey))
+
+### 1. Install dependencies
 
 ```bash
 npm install
 cd server && npm install
 ```
 
-### 2. Настройка окружения
+### 2. Configure environment
 
-Скопируйте `.env.example` в `.env` и добавьте ваш Gemini API ключ:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your credentials:
 
 ```env
 GEMINI_API_KEY=your_api_key_here
-JWT_SECRET=your_secret_here
+JWT_SECRET=your_jwt_secret_here
 PORT=3000
 ```
 
-Получите API ключ: [Google AI Studio](https://aistudio.google.com/apikey)
-
-### 3. Запуск сервера
+### 3. Start the proxy server
 
 ```bash
 npm start
 ```
 
-### 4. Установка расширения
+The server starts on `http://localhost:3000`.
 
-1. Откройте `chrome://extensions`
-2. Включите **Режим разработчика**
-3. Нажмите **Загрузить распакованное расширение**
-4. Выберите корневую папку проекта
+### 4. Load the extension
 
-### 5. Использование
+1. Open `chrome://extensions` (or `browser://extensions` in Yandex Browser)
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select the project root folder
 
-1. Откройте любую веб-страницу
-2. Нажмите `Alt+G` — появится кнопка-триггер справа
-3. Нажмите на кнопку — откроется панель Gemini Agent
-4. Задайте вопрос — агент проанализирует страницу и ответит
+### 5. Use it
 
-## Структура проекта
+1. Open any web page
+2. Press `Alt+G` -- a blue trigger button appears on the right edge
+3. Click the button -- the Gemini Agent panel slides open
+4. Type your question and press `Enter`
+
+## Subscription Tiers
+
+| Tier | Models | Context | Capabilities |
+|------|--------|---------|-------------|
+| **Free** | Gemini 3.5 Flash, 2.5 Flash | 1M tokens | Page titles, headings, text content |
+| **Pro** | + Gemini 2.5 Pro | 1M tokens | + code blocks from the page |
+| **Ultra** | + Gemini 1.5 Pro | 1M+ tokens | + links, image alt texts |
+
+## Hotkeys
+
+| Key | Action |
+|-----|--------|
+| `Alt+G` | Toggle the trigger button visibility |
+| `Enter` | Send message |
+| `Shift+Enter` | New line in input |
+| `cls` | Clear chat history (local only) |
+
+## Project Structure
 
 ```
-├── manifest.json              # Manifest V3 конфигурация расширения
-├── package.json               # Корневой package.json (скрипты запуска)
-├── .env                       # API ключи и настройки (не коммитить)
-├── icons/                     # Иконки расширения
+.
+├── manifest.json                 # Extension manifest (Manifest V3)
+├── package.json                  # Root scripts (start, dev)
+├── .env.example                  # Environment template
+│
 ├── src/
 │   ├── background/
-│   │   └── background.js      # Service Worker: авторизация, прокси, SSE
+│   │   └── background.js         # Service Worker: auth, proxy, SSE handling
 │   ├── content/
-│   │   └── content-script.js  # Content Script: iframe UI, виджет, анимации
+│   │   ├── content-script.js     # Page injection: iframe, context extraction, bridge
+│   │   └── styles.css            # (Reserved for shadow DOM styles)
 │   └── ui/
-│       ├── widget.html        # HTML-шаблон (вспомогательный)
-│       └── widget.js          # Логика виджета (вспомогательный)
-└── server/
-    ├── index.js               # Express сервер, CORS, прокси-детект
-    ├── proxy.js               # Автоопределение прокси (Windows/ENV/порт)
-    ├── routes/
-    │   └── chat.js            # POST /api/v1/chat — стриминг ответов
-    └── middleware/
-        └── auth.js            # JWT авторизация
+│       ├── widget.html           # HTML template for shadow DOM fallback
+│       └── widget.js             # Widget logic (shadow DOM mode)
+│
+├── server/
+│   ├── index.js                  # Express server entry point
+│   ├── proxy.js                  # Proxy auto-detection (Windows/ENV/local)
+│   ├── package.json              # Backend dependencies
+│   ├── middleware/
+│   │   └── auth.js               # JWT authorization middleware
+│   └── routes/
+│       └── chat.js               # POST /api/v1/chat -- SSE streaming endpoint
+│
+└── icons/
+    ├── icon16.png
+    ├── icon48.png
+    └── icon128.png
 ```
 
-## Тарифные планы
+## API
 
-| Тир | Модели | Контекст | Возможности |
-|-----|--------|----------|-------------|
-| **Free** | Gemini 3.5 Flash | 1M tokens | Анализ страницы, заголовки, текст |
-| **Pro** | Gemini 3.5 Flash, Gemini 2.5 Pro | 1M tokens | + блоки кода |
-| **Ultra** | Gemini 3.5 Flash, 2.5 Pro, 1.5 Pro | 1M+ tokens | + ссылки, изображения |
+The extension communicates with a local proxy server:
 
-## Горячие клавиши
+```
+POST /api/v1/chat
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
 
-| Комбинация | Действие |
-|------------|----------|
-| `Alt+G` | Показать/скрыть кнопку-триггер |
-| `Enter` | Отправить сообщение |
-| `Shift+Enter` | Перенос строки |
-| `cls` | Очистить историю чата |
+{
+  "message": "What is this page about?",
+  "context": "[Title] ...\n[Content] ...",
+  "model": "gemini-3.5-flash"
+}
+```
 
-## Технологии
+**Response:** Server-Sent Events (SSE) stream
 
-- **Frontend:** JavaScript ES6+, Manifest V3, iframe isolation, Custom Events
-- **Backend:** Node.js, Express, SSE streaming, JWT
-- **API:** Google Gemini (`@google/genai`)
-- **Прокси:** undici ProxyAgent, автодетект системного прокси Windows
+```
+data: {"text":"This page is about..."}
+data: {"text":" machine learning..."}
+data: [DONE]
+```
 
-## Лицензия
+## Tech Stack
 
-MIT
+- **Frontend:** ES6+ JavaScript, Manifest V3, iframe blob isolation, Custom Events
+- **Backend:** Node.js, Express, SSE streaming, JWT (jsonwebtoken)
+- **API:** Google Gemini via `@google/genai`
+- **Proxy:** undici ProxyAgent with Windows registry + local port auto-detection
+
+## Security
+
+- API key is **never** sent to the client -- it stays on the proxy server only
+- `.env` is gitignored and never committed
+- JWT tokens are decoded without verification on the client (dev mode)
+- All UI is isolated via iframe blob URLs to prevent style/script leakage
+
+## License
+
+[MIT](./LICENSE)
